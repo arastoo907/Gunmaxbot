@@ -1,3 +1,4 @@
+
 name: Build GunMax Bot APK
 
 on:
@@ -14,16 +15,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract source ZIP
+      - name: Find and extract ZIP
         run: |
           mkdir -p source
-          unzip -o GunMaxBot-source-download.zip -d source
+          ZIP_FILE=$(find . -maxdepth 1 -type f -iname '*.zip' | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No ZIP file found in repository!"
+            exit 1
+          fi
+          echo "Using ZIP: $ZIP_FILE"
+          unzip -o "$ZIP_FILE" -d source
 
       - name: Find Android project
         run: |
           PROJECT_DIR=$(find source -name settings.gradle.kts -printf '%h\n' | head -n 1)
           if [ -z "$PROJECT_DIR" ]; then
-            echo "Android project not found!"
+            echo "Android project not found in ZIP!"
             exit 1
           fi
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
